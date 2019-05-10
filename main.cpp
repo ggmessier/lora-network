@@ -129,20 +129,20 @@ void Read_Sensors() {
 /* Prints to the serial console */
 void Print_Sensors() {
   // this runs in the lower priority thread
-  printf("----------------------\r\n");
-  printf("HTS221: [temp] %7s C,   [hum] %s%%\r\n", print_double(buffer1, temp1), print_double(buffer2, humid1));
-  printf("LPS22HB: [temp] %7s C, [press] %s mbar\r\n", print_double(buffer3, temp2), print_double(buffer4, humid2));
-  printf("LSM303AGR [mag/mgauss]:  %6ld, %6ld, %6ld\r\n", axes1[0], axes1[1], axes1[2]);
-  printf("LSM303AGR [acc/mg]:  %6ld, %6ld, %6ld\r\n", axes2[0], axes2[1], axes2[2]);
-  printf("LSM6DSL [acc/mg]:      %6ld, %6ld, %6ld\r\n", axes3[0], axes3[1], axes3[2]);
-  printf("LSM6DSL [gyro/mdps]:   %6ld, %6ld, %6ld\r\n", axes4[0], axes4[1], axes4[2]);
-  printf("----------------------\r\n");
-  printf("Current us Time: %lld us\n\r", usTime1);
-  printf("Delta us Timer: %lld us\n\r", usDeltaTime);
-  printf("Current Epoch Time: %u\n\r", (unsigned int)whattime);
+  printf("%u ", (unsigned int)whattime);
+  printf("%lld ", usDeltaTime);
+  printf("%lld ", usTime1);
+  printf("%7s %s ", print_double(buffer1, temp1), print_double(buffer2, humid1));
+  printf("%7s %s ", print_double(buffer3, temp2), print_double(buffer4, humid2));
+  printf("%6ld %6ld %6ld ", axes1[0], axes1[1], axes1[2]);
+  printf("%6ld %6ld %6ld", axes2[0], axes2[1], axes2[2]);
+  printf("%6ld %6ld %6ld", axes3[0], axes3[1], axes3[2]);
+  printf("%6ld %6ld %6ld\r\n", axes4[0], axes4[1], axes4[2]);
+
+ 
 }
 
-/* Converts standard time into Epoch time */
+/* Converts standard time into Epoch time. Could delete this if no longer needed.*/
 time_t asUnixTime(int year, int mon, int mday, int hour, int min, int sec) {
     struct tm   t;
     t.tm_year = year - 1900;
@@ -162,8 +162,22 @@ int main() {
   pc.baud(115200);
   /* Sets an arbitrary starting date */
   /* TODO: read in from serial console to start */
-  set_time(asUnixTime(2019,03,24,16,10,30));
+  //set_time(asUnixTime(2019,03,24,16,10,30));  Could get rid of asUnixTime as well
 
+
+  /*Guillaume's addition to read in from serial*/
+  //Prompts the user to input the current unix time and uses input
+  //to set the RTC
+    int int_time=0;
+    char buffer[10];
+
+        pc.printf("Enter the current unix time:");
+        pc.scanf("%s", buffer);
+        sscanf(buffer, "%d", &int_time);
+        pc.printf("received %d\n",int_time);
+
+        set_time(int_time);  // Set RTC time
+  
   /* resets and starts the timer */
   t.reset();
   t.start();
@@ -177,8 +191,10 @@ int main() {
   acc_gyro->enable_x();
   acc_gyro->enable_g();
   wait(1.5);
-  printf("\r\n--- Starting new run ---\r\n");
-
+  //Prints headers for each measurement. Unsure if the acc, mag, and gyro
+  //directions are accurate. (Don't know if accx actually measures in x direction)
+  printf("\r\nDATE TIME EPOC DELT RUNT TEP1 HUM TEP2 PRES MAGX MAGY MAGZ AC1X AC1Y AC1Z AC2X AC2Y AC2Z GYRX GYRY GYRZ\r\n");
+/*
   hum_temp->read_id(&id);
   printf("HTS221  humidity & temperature    = 0x%X\r\n", id);
   press_temp->read_id(&id);
@@ -190,7 +206,7 @@ int main() {
   acc_gyro->read_id(&id);
   printf("LSM6DSL accelerometer & gyroscope = 0x%X\r\n", id);
   printf("---\r\n");
-    
+ */   
     // normal priority thread for other events
   Thread eventThread(osPriorityNormal);
   eventThread.start(callback(&eventQueue, &EventQueue::dispatch_forever));
