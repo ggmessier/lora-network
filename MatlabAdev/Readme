@@ -1,0 +1,10 @@
+Save the logtest and allan as matlab .m files and keep them in the same working directory.
+
+Datalog files should be in the same directory as the .m files.
+
+The reformatted sensor mbed code will print sensor data and its internal clock in TeraTerm.
+
+To add a timestamp in TeraTerm, navigate to the installation directory and edit the TERATERM.ini line 553 to
+LogTimestampFormat=%d-%m-%Y %H:%M:%S
+
+To log TeraTerm, go to file->log and select timestamp and in the dropdown menu select UTC.
