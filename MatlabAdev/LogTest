@@ -1,0 +1,58 @@
+close all
+%Imports data file, expecting headers to be in first row, so remove
+%everything above headers and delete the timestamp from the header line
+%manually.
+struct_data=importdata('datalog19',' ',1);
+
+%Removes '[' and ']' from tera term timestamp
+struct_data.textdata(2:end,1) = erase(struct_data.textdata(2:end,1),"[");
+struct_data.textdata(2:end,2) = erase(struct_data.textdata(2:end,2),"]");
+
+%Converts the first two columns of the text file (DATE,TIME) to epoch
+%format, this is taken from local computer.
+Epoch=posixtime( datetime(strcat(struct_data.textdata(2:end,1), {' '}, struct_data.textdata(2:end,2)), 'InputFormat', 'dd-MM-yyyy H:mm:ss') );
+
+%Concantenates newly calculated epoch time into array with rest of data.
+%This array holds all the data without headers.
+Final_data=horzcat(Epoch,struct_data.data);
+
+%Removes Date column from imported data
+struct_data.textdata(:,1)=[];
+
+%Create cells with headers (Maybe not a good idea if we dont need headers)
+Headered_table = [struct_data.textdata(1,:); num2cell(Final_data)];
+
+%Find the max difference between uc and local time
+diff = Final_data(:,2)-Final_data(:,1);
+max(diff)
+
+
+runtime=Final_data(:,4)./1000000;
+%Figure 1: Runtime vs temp1
+figure(1)
+plot(runtime, Final_data(:,5));
+
+%Figure 2: Runtime vs HUM
+figure(2)
+plot(runtime, Final_data(:,6));
+
+%Figure 3: Runtime vs GYRZ
+figure(3)
+plot(runtime, Final_data(:,20));
+
+%Figure 4: compares board time to local computer time
+figure(4)
+plot(runtime, Final_data(:,1));
+hold on
+plot(runtime, Final_data(:,2));
+hold off
+
+%Figure 5: Phase difference over time
+figure(5)
+plot(runtime, diff);
+
+
+data.phase = diff;
+data.time=runtime;
+tau = 1:28996;
+allan(data,tau)
